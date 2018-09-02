@@ -20,7 +20,7 @@ url = "https://www.busjav.net/"
 
 wd = ''
 
-def change_folder_name_and_download_image(avcode, path, old_folder_name):
+def change_folder_name_and_download_image(avcode, path, old_folder_name, rest):
 
     s = requests.Session()
     r = s.get(url + avcode)
@@ -35,8 +35,13 @@ def change_folder_name_and_download_image(avcode, path, old_folder_name):
     #change folder name
     old_wd = os.path.join(path, old_folder_name)
     new_wd = os.path.join(path, name)
-    os.rename(old_wd, new_wd)
+    if rest != " ":
+        new_wd = os.path.join(path, name + rest)
+    else:
+        new_wd = os.path.join(path, name + rest)
 
+
+    os.rename(old_wd, new_wd)
     os.chdir(new_wd)
 
     print "[*] Downloading cover image"
@@ -63,6 +68,7 @@ def download_image_over_socks5(img_src):
     print '[-] ' + img_src.split(".")[-2].split("/")[-1] + " done!"
 
 def format_id(avcode):
+    res = ""
     # insert '-'
     if avcode.find("-") == -1:
         i = 0
@@ -74,15 +80,31 @@ def format_id(avcode):
             i = i + 1
         if not l[0] == 'n':  # tokyohot
             avcode = ''.join(l)
-    return avcode
+
+    #deal with space for "star100 [FHD]" case
+    if avcode.find(" "):
+        i = 0
+        for c in avcode:
+            if c == " ":
+                break
+            else:
+                i = i + 1
+
+    res = avcode[i:]
+    avcode = avcode[0:i]
+
+    return avcode, res
 
 def maid(wd):
     dirs = os.listdir(wd)                                                      #get dir name list
     print dirs
     for item in dirs:                                                          #search and rename AV folder,and download pic
-        print item
-        code = format_id(item)                                                 #get AV code
-        change_folder_name_and_download_image(code, path, item)
+        try:
+            print item
+            code, rest = format_id(item)                                                 #get AV code
+            change_folder_name_and_download_image(code, path, item, rest)
+        except Exception as e:
+            print e
 
 
 
